@@ -1,0 +1,25 @@
+# 小さな CI: 第三者が clone して確かめられることを、push のたびに機械で確かめる。
+#   ①チェックサム ②コンパイル・裸の except なし・整形済み ③README に検証できる範囲 ④公開データからの再生成が commit と一致
+name: verify
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: compiles / no bare except / formatted
+        run: |
+          pip install -q ruff==0.15.12
+          python -m compileall -q scripts tests
+          ruff check .
+          ruff format --check .
+      - name: README states what a third party can verify
+        run: grep -q -E '検証できる範囲|can verify|Checking the tool' README.md
+      - name: checksums (what a reader gets must match SHA256SUMS)
+        run: sha256sum -c --quiet SHA256SUMS
+      - name: reproduce from committed data and compare
+        run: |
+          python -m unittest discover -s tests

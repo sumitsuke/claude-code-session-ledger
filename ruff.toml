@@ -1,0 +1,6 @@
+# 公開コードだけ整形・検査する（データとして置いてある .py と Markdown は触らない）。CI: .github/workflows/verify.yml
+line-length = 120
+exclude = ["data", "*.md", "__pycache__"]
+
+[lint]
+select = ["E722", "F"]
